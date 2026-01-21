@@ -4,9 +4,10 @@ import { TrendingUp, Users, ShoppingCart, Euro, ArrowRight, AlertCircle, Trendin
 interface DashboardProps {
   data: any
   onNavigate?: (tab: any) => void
+  showWebData?: boolean
 }
 
-export default function Dashboard({ data, onNavigate }: DashboardProps) {
+export default function Dashboard({ data, onNavigate, showWebData }: DashboardProps) {
   // Vérification de sécurité
   if (!data || !data.familles || !data.allClients) {
     return (
@@ -260,77 +261,78 @@ export default function Dashboard({ data, onNavigate }: DashboardProps) {
         </div>
       </div>
 
-      {/* KPIs Principaux - Magasin */}
-      <div className="glass rounded-3xl p-6 border border-zinc-800 mb-6">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Store className="w-5 h-5 text-blue-400" />
-          Magasins Physiques
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">CA Magasins</p>
-                <p className="text-3xl font-semibold text-white">{formatEuro(totalCAMagasin)}</p>
-                <p className="text-xs text-zinc-400 mt-2">
-                  {((totalCAMagasin / totalCA) * 100).toFixed(1)}% du total
-                </p>
-              </div>
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Euro className="w-6 h-6 text-blue-400" />
+      {/* KPIs Principaux - Basculement Magasin/Web */}
+      {!showWebData ? (
+        // KPIs Magasin
+        <div className="glass rounded-3xl p-6 border border-zinc-800 mb-6">
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <Store className="w-5 h-5 text-blue-400" />
+            Magasins Physiques
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">CA Magasins</p>
+                  <p className="text-3xl font-semibold text-white">{formatEuro(totalCAMagasin)}</p>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    {((totalCAMagasin / totalCA) * 100).toFixed(1)}% du total
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-500/20 rounded-xl">
+                  <Euro className="w-6 h-6 text-blue-400" />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Transactions</p>
-                <p className="text-3xl font-semibold text-white">{totalTransactionsMag.toLocaleString('fr-FR')}</p>
-                <p className="text-xs text-zinc-400 mt-2">
-                  {Math.round(totalTransactionsMag / nbClients * 10) / 10} par client
-                </p>
-              </div>
-              <div className="p-3 bg-cyan-500/20 rounded-xl">
-                <ShoppingCart className="w-6 h-6 text-cyan-400" />
+            <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Transactions</p>
+                  <p className="text-3xl font-semibold text-white">{totalTransactionsMag.toLocaleString('fr-FR')}</p>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    {Math.round(totalTransactionsMag / nbClients * 10) / 10} par client
+                  </p>
+                </div>
+                <div className="p-3 bg-cyan-500/20 rounded-xl">
+                  <ShoppingCart className="w-6 h-6 text-cyan-400" />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Panier Moyen</p>
-                <p className="text-3xl font-semibold text-white">{formatEuro(panierMoyenMag)}</p>
-                <p className="text-xs text-zinc-400 mt-2">
-                  Par transaction
-                </p>
-              </div>
-              <div className="p-3 bg-teal-500/20 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-teal-400" />
+            <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Panier Moyen</p>
+                  <p className="text-3xl font-semibold text-white">{formatEuro(panierMoyenMag)}</p>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    Par transaction
+                  </p>
+                </div>
+                <div className="p-3 bg-teal-500/20 rounded-xl">
+                  <TrendingUp className="w-6 h-6 text-teal-400" />
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Magasins</p>
-                <p className="text-3xl font-semibold text-white">{topMagasins.length}</p>
-                <p className="text-xs text-zinc-400 mt-2">
-                  Points de vente
-                </p>
-              </div>
-              <div className="p-3 bg-indigo-500/20 rounded-xl">
-                <Store className="w-6 h-6 text-indigo-400" />
+            
+            <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Magasins</p>
+                  <p className="text-3xl font-semibold text-white">{topMagasins.length}</p>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    Points de vente
+                  </p>
+                </div>
+                <div className="p-3 bg-indigo-500/20 rounded-xl">
+                  <Store className="w-6 h-6 text-indigo-400" />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* KPIs Web */}
-      {totalCAWeb > 0 && (
+      ) : totalCAWeb > 0 && (
+        // KPIs Web
         <div className="glass rounded-3xl p-6 border border-zinc-800 mb-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Globe className="w-5 h-5 text-cyan-400" />

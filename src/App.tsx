@@ -4,7 +4,6 @@ import FileUploader from './components/FileUploader'
 
 // Lazy loading des composants pour accélérer le chargement initial
 const Dashboard = lazy(() => import('./components/Dashboard'))
-const WebDashboard = lazy(() => import('./components/WebDashboard'))
 const SearchPanel = lazy(() => import('./components/SearchPanel'))
 const RFMAnalysis = lazy(() => import('./components/RFMAnalysis'))
 const SubFamilyAnalysis = lazy(() => import('./components/SubFamilyAnalysis'))
@@ -17,7 +16,7 @@ const ForecastAnomalies = lazy(() => import('./components/ForecastAnomalies'))
 const SocialMediaInsights = lazy(() => import('./components/SocialMediaInsights'))
 const ExportData = lazy(() => import('./components/ExportData'))
 
-type TabType = 'dashboard' | 'web' | 'search' | 'rfm' | 'subFamilies' | 'crossSelling' | 'cohortes' | 'abc' | 'kingquentin' | 'stores' | 'forecast' | 'social' | 'exports'
+type TabType = 'dashboard' | 'search' | 'rfm' | 'subFamilies' | 'crossSelling' | 'cohortes' | 'abc' | 'kingquentin' | 'stores' | 'forecast' | 'social' | 'exports'
 
 function App() {
   const [data, setData] = useState<any>(null)
@@ -59,17 +58,6 @@ function App() {
               >
                 <Home className="w-5 h-5" />
                 {sidebarOpen && <span>Vue d'ensemble</span>}
-              </button>
-              <button
-                onClick={() => setActiveTab('web')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                  activeTab === 'web'
-                    ? 'bg-cyan-500 text-white'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                }`}
-              >
-                <Globe className="w-5 h-5" />
-                {sidebarOpen && <span>E-Commerce</span>}
               </button>
               <button
                 onClick={() => setActiveTab('search')}
@@ -284,8 +272,7 @@ function App() {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
               </div>
             }>
-              {activeTab === 'dashboard' && <Dashboard data={data} onNavigate={setActiveTab} />}
-              {activeTab === 'web' && <WebDashboard data={data} />}
+              {activeTab === 'dashboard' && <Dashboard data={data} onNavigate={setActiveTab} showWebData={showWebData} />}
               {activeTab === 'search' && <SearchPanel data={data} />}
               {activeTab === 'rfm' && <RFMAnalysis data={data} showWebData={showWebData} />}
               {activeTab === 'subFamilies' && <SubFamilyAnalysis data={data} showWebData={showWebData} />}
