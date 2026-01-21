@@ -1,14 +1,14 @@
-import { Package, TrendingDown, TrendingUp, AlertTriangle, Globe, Store } from 'lucide-react'
+import { Package, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 
 interface SubFamilyAnalysisProps {
   data: any
+  showWebData?: boolean
 }
 
-export default function SubFamilyAnalysis({ data }: SubFamilyAnalysisProps) {
+export default function SubFamilyAnalysis({ data, showWebData = false }: SubFamilyAnalysisProps) {
   const [cacTotal, setCacTotal] = useState(25)
   const [isEditingCAC, setIsEditingCAC] = useState(false)
-  const [showWeb, setShowWeb] = useState(false) // Toggle Web/Magasin
 
   if (!data || !data.allClients) {
     return (
@@ -101,7 +101,7 @@ export default function SubFamilyAnalysis({ data }: SubFamilyAnalysisProps) {
     }
   }
 
-  const analysis = analyzeSubFamilies(showWeb)
+  const analysis = analyzeSubFamilies(showWebData)
   const { subFamilies, totalTickets } = analysis
 
   const totalCA = subFamilies.reduce((sum, sf) => sum + sf.ca, 0)
@@ -122,29 +122,6 @@ export default function SubFamilyAnalysis({ data }: SubFamilyAnalysisProps) {
               <p className="text-zinc-400">Rentabilité par sous-famille vs Coût d'Acquisition Client (CAC)</p>
             </div>
           </div>
-          
-          {/* Toggle Web/Magasin */}
-          <button
-            onClick={() => setShowWeb(!showWeb)}
-            className={`flex items-center gap-3 px-5 py-3 rounded-xl font-medium transition-all border-2 ${
-              showWeb
-                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-                : 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-            }`}
-          >
-            {showWeb ? (
-              <>
-                <Globe className="w-5 h-5" />
-                <span>E-Commerce</span>
-              </>
-            ) : (
-              <>
-                <Store className="w-5 h-5" />
-                <span>Magasins</span>
-              </>
-            )}
-          </button>
-        </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 rounded-2xl p-4 border border-purple-600/30">

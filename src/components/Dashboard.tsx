@@ -1,5 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { TrendingUp, Users, ShoppingCart, Euro, ArrowRight, AlertCircle, TrendingDown, Package, Target, Sparkles, Award, Store } from 'lucide-react'
+import { TrendingUp, Users, ShoppingCart, Euro, ArrowRight, AlertCircle, TrendingDown, Package, Target, Sparkles, Award, Store, Globe } from 'lucide-react'
 
 interface DashboardProps {
   data: any

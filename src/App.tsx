@@ -23,6 +23,7 @@ function App() {
   const [data, setData] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<TabType>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [showWebData, setShowWebData] = useState(false)
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
@@ -238,6 +239,31 @@ function App() {
           </div>
           {data && (
             <div className="flex items-center gap-4">
+              {/* Toggle Web/Magasin */}
+              <button
+                onClick={() => setShowWebData(!showWebData)}
+                disabled={!data.webStats || data.webStats.ca === 0}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all border ${
+                  !data.webStats || data.webStats.ca === 0
+                    ? 'bg-zinc-800/50 border-zinc-700 text-zinc-600 cursor-not-allowed'
+                    : showWebData
+                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/30'
+                    : 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30'
+                }`}
+              >
+                {showWebData ? (
+                  <>
+                    <Globe className="w-4 h-4" />
+                    <span className="text-sm">Web</span>
+                  </>
+                ) : (
+                  <>
+                    <Store className="w-4 h-4" />
+                    <span className="text-sm">Magasin</span>
+                  </>
+                )}
+              </button>
+              
               <div className="glass px-4 py-2 rounded-lg">
                 <p className="text-sm text-zinc-400">Période analysée</p>
                 <p className="text-lg font-bold text-white">
@@ -261,14 +287,14 @@ function App() {
               {activeTab === 'dashboard' && <Dashboard data={data} onNavigate={setActiveTab} />}
               {activeTab === 'web' && <WebDashboard data={data} />}
               {activeTab === 'search' && <SearchPanel data={data} />}
-              {activeTab === 'rfm' && <RFMAnalysis data={data} />}
-              {activeTab === 'subFamilies' && <SubFamilyAnalysis data={data} />}
+              {activeTab === 'rfm' && <RFMAnalysis data={data} showWebData={showWebData} />}
+              {activeTab === 'subFamilies' && <SubFamilyAnalysis data={data} showWebData={showWebData} />}
               {activeTab === 'crossSelling' && <CrossSellingAnalysis data={data} />}
-              {activeTab === 'cohortes' && <CohortAnalysis data={data} />}
+              {activeTab === 'cohortes' && <CohortAnalysis data={data} showWebData={showWebData} />}
               {activeTab === 'abc' && <ABCAnalysis data={data} />}
               {activeTab === 'kingquentin' && <KingQuentin data={data} />}
               {activeTab === 'stores' && <StorePerformance data={data} />}
-              {activeTab === 'forecast' && <ForecastAnomalies data={data} />}
+              {activeTab === 'forecast' && <ForecastAnomalies data={data} showWebData={showWebData} />}
               {activeTab === 'social' && <SocialMediaInsights data={data} />}
               {activeTab === 'exports' && <ExportData data={data} />}
             </Suspense>
