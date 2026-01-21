@@ -80,6 +80,8 @@ export default function RFMAnalysis({ data, onSearchClient, showWebData }: RFMAn
         })
       })
       
+      console.log(`🔍 RFM ${showWebData ? 'WEB' : 'MAGASIN'}: ${clients.length} clients trouvés`)
+      
       if (clients.length === 0) return []
       
       // Étape 2: Calculer les seuils de quintiles sur l'ensemble
