@@ -33,7 +33,7 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
   const totalTransactionsMag = uniqueTicketsMag.size
   
   // Transactions web uniquement
-  const totalTransactionsWeb = data.webStats?.tickets?.size || 0
+  const totalTransactionsWeb = data.webStats?.ticketsUniques || 0
   
   const panierMoyenMag = totalTransactionsMag > 0 ? totalCAMagasin / totalTransactionsMag : 0
   const panierMoyenWeb = totalTransactionsWeb > 0 ? totalCAWeb / totalTransactionsWeb : 0
