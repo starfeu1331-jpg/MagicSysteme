@@ -71,7 +71,7 @@ export default function SubFamilyAnalysis({ data }: SubFamilyAnalysisProps) {
     // const cacTotal = totalTickets > 0 ? MARKETING_COST_TOTAL / totalTickets : 0
 
     // Convertir en tableau et calculer les métriques
-    const results = Object.entries(subFamilyStats).map(([key, stats]) => {
+    const results = Object.entries(subFamilyStats).map(([, stats]) => {
       const nbTickets = stats.tickets.size
       const panierMoyen = nbTickets > 0 ? stats.ca / nbTickets : 0
       const caParVolume = stats.volume > 0 ? stats.ca / stats.volume : 0

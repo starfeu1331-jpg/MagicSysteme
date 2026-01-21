@@ -75,17 +75,6 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
       // Vérifier avec et sans guillemets car Papa Parse peut les inclure
       const isWebFormat = 'categorie' in row || 'magasin' in row || '"categorie"' in row || '"magasin"' in row
       
-      if (index < 3 && isWebFormat) {
-        console.log('🌐 Ligne Web détectée:', {
-          magasin,
-          isWeb: magasin === 'WEB',
-          carte,
-          ticket,
-          ca,
-          date
-        })
-      }
-      
       const famille = isWebFormat ? (row['categorie'] || row['"categorie"']) : row['Famille Produit']
       const sousFamille = isWebFormat ? null : row['S/Famille Produit']
       const magasin = isWebFormat ? (row['magasin'] || row['"magasin"']) : row['Magasin']
@@ -97,6 +86,16 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
       const ticket = isWebFormat ? (row['numero_ticket'] || row['"numero_ticket"']) : row['N° Ticket']
       const produit = isWebFormat ? (row['code_article'] || row['"code_article"']) : row['N° Produit']
       const date = isWebFormat ? (row['date'] || row['"date"']) : row['Date']
+      
+      if (index < 3 && isWebFormat) {
+        console.log('🌐 Ligne Web détectée:', {
+          magasin,
+          isWeb: magasin === 'WEB',
+          carte,
+          ticket,
+          date
+        })
+      }
 
       if (!famille || !caStr || String(caStr).trim() === '') return
 
@@ -109,14 +108,6 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
 
       // Autoriser les CA négatifs (avoirs, remboursements) mais ignorer les valeurs invalides et 0
       if (isNaN(ca) || ca === 0) return
-
-      // Debug: Collecter les numéros de magasins uniques (limiter à 100 premiers)
-      if (!processed.debugMagasins) {
-        processed.debugMagasins = new Set()
-      }
-      if (processed.debugMagasins.size < 100) {
-        processed.debugMagasins.add(magasin)
-      }
 
       // Web vs Physique - DOIT ÊTRE DÉFINI EN PREMIER
       const isWeb = magasin === 'WEB'
@@ -411,7 +402,6 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
 
     // Convertir le Set de tickets Web en nombre
     const webTicketsCount = processed.webStats.tickets.size
-    processed.webStats.ticketsUniques = webTicketsCount
     
     // Debug Web stats
     console.log('🌐 Stats Web:', {
@@ -433,7 +423,6 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
       webStats: { ca: processed.webStats.ca, ticketsUniques: webTicketsCount }
     })
     
-    console.log('🔍 Magasins trouvés dans le CSV:', Array.from(processed.debugMagasins as Set<string>).sort())
     console.log('🏪 MAGASINS DANS processed.geo.magasins:', {
       count: Object.keys(processed.geo.magasins).length,
       magasins: Object.entries(processed.geo.magasins).map(([mag, stats]: [string, any]) => ({
@@ -442,7 +431,6 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
         volume: stats.volume
       })).slice(0, 5)
     })
-    delete (processed as any).debugMagasins
 
     setProgress('✅ Terminé!')
     
@@ -496,6 +484,8 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
   
   const continueLoading = () => {
     setProgress('📂 Lecture du fichier 1...')
+
+    if (!files.file1) return
 
     Papa.parse(files.file1, {
       header: true,

@@ -1,6 +1,5 @@
 import { ArrowLeft, Download, TrendingUp, ShoppingCart, Euro, Users, Package, MapPin, Calendar, BarChart3 } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
-import { getProductDetails } from '../services/decorAPI'
 
 interface SegmentDetailProps {
   segmentName: string
@@ -97,22 +96,8 @@ export default function SegmentDetail({
           continue
         }
         
-        try {
-          console.log(`📡 Fetching product ${produit.code}...`)
-          const productInfo = await getProductDetails(produit.code)
-          
-          if (productInfo) {
-            const nom = productInfo.nom_pro || productInfo.nom_pr2 || produit.code
-            console.log(`✅ Got name for ${produit.code}:`, nom)
-            names[produit.code] = nom
-          } else {
-            console.log(`⚠️ No data for ${produit.code}`)
-            names[produit.code] = produit.code
-          }
-        } catch (error) {
-          console.error(`❌ Error fetching ${produit.code}:`, error)
-          names[produit.code] = produit.code
-        }
+        // Pas d'API pour le moment
+        names[produit.code] = produit.code
       }
       
       console.log('✅ All product names fetched:', Object.keys(names).length, 'products')
@@ -151,7 +136,7 @@ export default function SegmentDetail({
     if (clientData?.achats) {
       clientData.achats.forEach((achat: any) => {
         if (achat.date && achat.date !== 'N/A') {
-          const [day, month, year] = achat.date.split('/')
+          const [, month, year] = achat.date.split('/')
           const monthKey = `${year}-${month}`
           if (!dateStats[monthKey]) {
             dateStats[monthKey] = { ca: 0, tickets: new Set() }

@@ -33,11 +33,11 @@ export default function WebDashboard({ data }: WebDashboardProps) {
 
   // Top clients web
   let debugCount = 0
-  const topClientsWeb = Array.from(data.allClients.entries())
-    .filter(([_, client]: [any, any]) => {
+  const topClientsWeb = Array.from(data.allClients.entries() as any)
+    .filter(([_, client]: any) => {
       return client.achats?.some((a: any) => a.magasin === 'WEB')
     })
-    .map(([carte, client]: [any, any]) => {
+    .map(([carte, client]: any) => {
       const achatsWeb = client.achats.filter((a: any) => a.magasin === 'WEB')
       const caWeb = achatsWeb.reduce((sum: number, a: any) => sum + (a.ca || 0), 0)
       

@@ -1,9 +1,9 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
-import { TrendingUp, Users, ShoppingCart, Euro, Globe, ArrowRight, AlertCircle, TrendingDown, Package, Target, Sparkles, Award, Store } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { TrendingUp, Users, ShoppingCart, Euro, ArrowRight, AlertCircle, TrendingDown, Package, Target, Sparkles, Award, Store } from 'lucide-react'
 
 interface DashboardProps {
   data: any
-  onNavigate?: (tab: string) => void
+  onNavigate?: (tab: any) => void
 }
 
 export default function Dashboard({ data, onNavigate }: DashboardProps) {
