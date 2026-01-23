@@ -4,10 +4,9 @@ import { useState } from 'react'
 
 interface ForecastAnomaliesProps {
   data: any
-  showWebData?: boolean
 }
 
-export default function ForecastAnomalies({ data, showWebData }: ForecastAnomaliesProps) {
+export default function ForecastAnomalies({ data }: ForecastAnomaliesProps) {
   const [channel, setChannel] = useState<'all' | 'mag' | 'web'>('all')
   
   if (!data || !data.saison) {

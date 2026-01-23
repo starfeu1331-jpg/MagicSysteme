@@ -280,7 +280,7 @@ function App() {
               {activeTab === 'abc' && <ABCAnalysis data={data} />}
               {activeTab === 'kingquentin' && <KingQuentin data={data} />}
               {activeTab === 'stores' && <StorePerformance data={data} />}
-              {activeTab === 'forecast' && <ForecastAnomalies data={data} showWebData={showWebData} />}
+              {activeTab === 'forecast' && <ForecastAnomalies data={data} />}
               {activeTab === 'social' && <SocialMediaInsights data={data} />}
               {activeTab === 'exports' && <ExportData data={data} />}
             </Suspense>
