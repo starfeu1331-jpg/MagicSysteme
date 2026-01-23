@@ -211,7 +211,6 @@ function App() {
             <h1 className="text-2xl font-bold text-white">
               {!data && 'Bienvenue'}
               {data && activeTab === 'dashboard' && 'Vue d\'ensemble'}
-              {data && activeTab === 'web' && 'Web Dashboard'}
               {data && activeTab === 'search' && 'Recherche'}
               {data && activeTab === 'rfm' && 'Segmentation RFM'}
               {data && activeTab === 'subFamilies' && 'Sous-familles'}

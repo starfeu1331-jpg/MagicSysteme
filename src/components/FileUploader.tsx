@@ -44,7 +44,7 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
       fideliteMag: { oui: 0, non: 0, oui_ca: 0, non_ca: 0 },
       fideliteWeb: { oui: 0, non: 0, oui_ca: 0, non_ca: 0 },
       geo: { cp: {} as any, magasins: {} as any },
-      webStats: { ca: 0, volume: 0, tickets: new Set() },
+      webStats: { ca: 0, volume: 0, tickets: new Set(), ticketsUniques: 0 },
       catalogueWeb: {} as any, // Nouveau: catalogue des produits dispo sur le web
       crossSell: {} as any,
       crossSellMag: {} as any,
@@ -80,7 +80,7 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
       
       const famille = isWebFormat ? (row['categorie'] || row['"categorie"']) : row['Famille Produit']
       const sousFamille = isWebFormat ? null : row['S/Famille Produit']
-      const magasin = isWebFormat ? (row['magasin'] || row['"magasin"']) : row['Magasin']
+      const magasin = isWebFormat ? (row['magasin'] || row['"magasin"'] || 'WEB') : row['Magasin']
       const fidelite = isWebFormat ? (row['carte_fidelite'] && row['carte_fidelite'] !== '' ? 'Oui' : 'Non') : row['Client Fidélité']
       const carte = isWebFormat ? (row['carte_fidelite'] || row['"carte_fidelite"']) : row['N° Carte de fidélité']
       const cp = isWebFormat ? (row['cp'] || row['"cp"']) : row['C.P Fidélité']
@@ -416,6 +416,7 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
     })
     
     delete (processed.webStats as any).tickets // Supprimer le Set
+    processed.webStats.ticketsUniques = webTicketsCount // Ajouter le nombre de tickets uniques
 
     console.log('✅ Traitement terminé:', {
       tickets: processed.allTickets.length,

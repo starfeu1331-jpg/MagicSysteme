@@ -58,7 +58,7 @@ export default function RFMAnalysis({ data, onSearchClient, showWebData }: RFMAn
             if (!lastDate || d > lastDate) lastDate = d
             if (!firstDate || d < firstDate) firstDate = d
           }
-          caTotal += achat.ca_total || 0
+          caTotal += achat.ca || 0
         }
         
         const recency = lastDate ? Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)) : 9999

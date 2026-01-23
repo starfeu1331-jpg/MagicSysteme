@@ -25,7 +25,7 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
   // KPIs séparés Magasin et Web
   const totalCAMagasin = Object.values(data.famillesMag || data.familles || {}).reduce((sum: number, f: any) => sum + (f?.ca || 0), 0)
   const totalCAWeb = data.webStats?.ca || 0
-  const totalCA = totalCAMagasin + totalCAWeb
+  const totalCA = totalCAMagasin + totalCAWeb  // Pour calcul des pourcentages
   
   // Transactions magasin uniquement (pas web)
   const ticketsMagasin = (data.allTickets || []).filter((t: any) => t.magasin !== 'WEB')
@@ -37,102 +37,83 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
   
   const panierMoyenMag = totalTransactionsMag > 0 ? totalCAMagasin / totalTransactionsMag : 0
   const panierMoyenWeb = totalTransactionsWeb > 0 ? totalCAWeb / totalTransactionsWeb : 0
-  const nbClients = data.allClients?.size || 0
   
-  // Calcul RFM exact identique à RFMAnalysis
+  // Clients uniques - FILTRER selon le canal
+  const calculateNbClients = () => {
+    if (!data.allClients) return 0
+    let count = 0
+    data.allClients.forEach((client: any) => {
+      if (!client.achats || client.achats.length === 0) return
+      const hasAchatsInChannel = client.achats.some((achat: any) => {
+        if (showWebData === true) {
+          return achat.magasin === 'WEB'
+        } else {
+          return achat.magasin !== 'WEB'
+        }
+      })
+      if (hasAchatsInChannel) count++
+    })
+    return count
+  }
+  
+  const nbClients = calculateNbClients()
+  
+  // Calcul RFM simplifié pour overview
   const calculateQuickRFM = () => {
     const segments = {
-      ultraChampions: 0,
       champions: 0,
       loyaux: 0,
-      nouveaux: 0,
-      occasionnels: 0,
       risque: 0,
-      perdus: 0
+      perdus: 0,
+      nouveaux: 0,
+      occasionnels: 0
     }
-    
-    if (!data.allClients || data.allClients.size === 0) return segments
     
     const today = new Date()
-    const clients: any[] = []
     
-    const parseDate = (dateStr: string) => {
-      if (!dateStr) return null
-      const [day, month, year] = dateStr.split('/')
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-    }
-    
-    // Collecter tous les clients avec données brutes
     data.allClients.forEach((client: any) => {
       if (!client.achats || client.achats.length === 0) return
       
-      let lastDate: Date | null = null
+      // Filtrer les achats selon le toggle Web/Magasin
+      const achatsFiltered = client.achats.filter((achat: any) => {
+        if (showWebData === true) {
+          return achat.magasin === 'WEB'
+        } else {
+          return achat.magasin !== 'WEB'
+        }
+      })
       
-      for (const achat of client.achats) {
-        const d = parseDate(achat.date)
-        if (d && (!lastDate || d > lastDate)) lastDate = d
+      if (achatsFiltered.length === 0) return
+      
+      const parseDate = (dateStr: string) => {
+        if (!dateStr) return null
+        const [day, month, year] = dateStr.split('/')
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
       }
       
-      const recency = lastDate ? Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)) : 9999
-      const frequency = client.achats.length
-      const monetary = client.ca_total || 0
+      const lastPurchase = achatsFiltered.reduce((latest: any, achat: any) => {
+        const achatDate = parseDate(achat.date)
+        return !latest || (achatDate && achatDate > latest) ? achatDate : latest
+      }, null)
       
-      if (monetary <= 0) return
+      // Calculer le CA total des achats filtrés
+      const caTotal = achatsFiltered.reduce((sum, achat) => sum + (achat.ca || 0), 0)
       
-      clients.push({ recency, frequency, monetary })
-    })
-    
-    if (clients.length === 0) return segments
-    
-    // Calculer les quintiles
-    const recencyValues = clients.map(c => c.recency).sort((a, b) => a - b)
-    const frequencyValues = clients.map(c => c.frequency).sort((a, b) => b - a)
-    const monetaryValues = clients.map(c => c.monetary).sort((a, b) => b - a)
-    
-    const getQuintileThresholds = (sortedValues: number[]) => {
-      const len = sortedValues.length
-      return [
-        sortedValues[Math.floor(len * 0.2)],
-        sortedValues[Math.floor(len * 0.4)],
-        sortedValues[Math.floor(len * 0.6)],
-        sortedValues[Math.floor(len * 0.8)]
-      ]
-    }
-    
-    const recencyThresholds = getQuintileThresholds(recencyValues)
-    const frequencyThresholds = getQuintileThresholds(frequencyValues)
-    const monetaryThresholds = getQuintileThresholds(monetaryValues)
-    
-    const getQuintile = (value: number, thresholds: number[], reverse = false) => {
-      if (!reverse) {
-        if (value >= thresholds[0]) return 5
-        if (value >= thresholds[1]) return 4
-        if (value >= thresholds[2]) return 3
-        if (value >= thresholds[3]) return 2
-        return 1
-      } else {
-        if (value <= thresholds[0]) return 5
-        if (value <= thresholds[1]) return 4
-        if (value <= thresholds[2]) return 3
-        if (value <= thresholds[3]) return 2
-        return 1
-      }
-    }
-    
-    // Assigner scores et segments
-    clients.forEach(client => {
-      const R = getQuintile(client.recency, recencyThresholds, true)
-      const F = getQuintile(client.frequency, frequencyThresholds)
-      const M = getQuintile(client.monetary, monetaryThresholds)
+      const recency = lastPurchase ? Math.floor((today.getTime() - lastPurchase.getTime()) / (1000 * 60 * 60 * 24)) : 9999
+      const frequency = achatsFiltered.length
+      const monetary = caTotal
       
-      // Segmentation identique à RFMAnalysis
-      if (R === 5 && F === 5 && M === 5) segments.ultraChampions++
-      else if (R >= 4 && F >= 4 && M >= 4) segments.champions++
-      else if (R >= 4 && F === 3) segments.nouveaux++
-      else if (R === 3 && F === 3) segments.occasionnels++
+      // Scoring simplifié
+      const R = recency < 30 ? 5 : recency < 90 ? 4 : recency < 180 ? 3 : recency < 365 ? 2 : 1
+      const F = frequency >= 10 ? 5 : frequency >= 5 ? 4 : frequency >= 3 ? 3 : frequency >= 2 ? 2 : 1
+      const M = monetary >= 1000 ? 5 : monetary >= 500 ? 4 : monetary >= 200 ? 3 : monetary >= 50 ? 2 : 1
+      
+      if (R >= 4 && F >= 4 && M >= 4) segments.champions++
       else if (R >= 3 && F >= 3 && M >= 3) segments.loyaux++
-      else if (F >= 3 && R <= 2) segments.risque++
-      else segments.perdus++
+      else if (R <= 2 && F >= 3) segments.risque++
+      else if (R <= 2 && F <= 2) segments.perdus++
+      else if (F === 1) segments.nouveaux++
+      else segments.occasionnels++
     })
     
     return segments
@@ -140,13 +121,22 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
   
   const rfmSegments = calculateQuickRFM()
 
-  // Top Sous-familles (analyse de rentabilité)
+  // Top Sous-familles (analyse de rentabilité) - FILTRÉ selon showWebData
   const analyzeSubFamilies = () => {
     const subFams: any = {}
     
     if (!data.allTickets || data.allTickets.length === 0) return []
     
-    data.allTickets.forEach((ticket: any) => {
+    // Filtrer les tickets selon le canal
+    const ticketsFiltered = data.allTickets.filter((ticket: any) => {
+      if (showWebData === true) {
+        return ticket.magasin === 'WEB'
+      } else {
+        return ticket.magasin !== 'WEB'
+      }
+    })
+    
+    ticketsFiltered.forEach((ticket: any) => {
       const key = `${ticket.famille}|${ticket.sousFamille}`
       if (!subFams[key]) {
         subFams[key] = {
@@ -208,24 +198,33 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
   
   const produitsFollie = getProduitsFollie()
 
-  // Top Magasins
-  const topMagasins = data.geo?.magasins 
+  // Top Magasins - NE PAS AFFICHER EN MODE WEB
+  const topMagasins = !showWebData && data.geo?.magasins 
     ? Object.entries(data.geo.magasins)
         .map(([mag, stats]: [string, any]) => ({ mag, ca: stats.ca || 0, volume: stats.volume || 0 }))
-        .filter(m => !m.mag.startsWith('M41') && !m.mag.startsWith('M42')) // Exclure dépôts web
+        .filter(m => m.mag !== 'WEB' && !m.mag.startsWith('M41') && !m.mag.startsWith('M42')) // Exclure web et dépôts
         .sort((a, b) => b.ca - a.ca)
         .slice(0, 5)
     : []
 
-  // Évolution mensuelle
-  const saisonData = data.saison 
-    ? Object.entries(data.saison)
-        .map(([month, familles]: [string, any]) => {
-          const total = Object.values(familles).reduce((sum: number, ca: any) => sum + (ca || 0), 0)
-          return { month, ca: total }
-        })
-        .sort((a, b) => a.month.localeCompare(b.month))
-    : []
+  // Évolution mensuelle - FILTRÉ selon showWebData
+  const saisonData = (() => {
+    let sourceData = data.saison
+    if (showWebData === true && data.saisonWeb) {
+      sourceData = data.saisonWeb
+    } else if (showWebData === false && data.saisonMag) {
+      sourceData = data.saisonMag
+    }
+    
+    return sourceData
+      ? Object.entries(sourceData)
+          .map(([month, familles]: [string, any]) => {
+            const total = Object.values(familles).reduce((sum: number, ca: any) => sum + (ca || 0), 0)
+            return { month, ca: total }
+          })
+          .sort((a, b) => a.month.localeCompare(b.month))
+      : []
+  })()
   
   // Calcul de la tendance (3 derniers mois)
   const recentMonths = saisonData.slice(-3)
@@ -392,10 +391,14 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
         <div className="stat-card glass rounded-2xl shadow-lg p-6 card-hover border border-zinc-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">CA Total Global</p>
-              <p className="text-3xl font-semibold text-white">{formatEuro(totalCA)}</p>
+              <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">
+                {showWebData ? 'CA E-Commerce' : 'CA Magasins'}
+              </p>
+              <p className="text-3xl font-semibold text-white">
+                {formatEuro(showWebData ? totalCAWeb : totalCAMagasin)}
+              </p>
               <p className="text-xs text-zinc-400 mt-2">
-                Magasins + Web
+                {showWebData ? `${((totalCAWeb / totalCA) * 100).toFixed(1)}% du total` : `${((totalCAMagasin / totalCA) * 100).toFixed(1)}% du total`}
               </p>
             </div>
             <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
@@ -410,7 +413,7 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
               <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wide mb-2">Clients Uniques</p>
               <p className="text-3xl font-semibold text-white">{nbClients.toLocaleString('fr-FR')}</p>
               <p className="text-xs text-purple-400 mt-2 font-semibold">
-                {rfmSegments.ultraChampions + rfmSegments.champions} Top Clients ⭐
+                {rfmSegments.champions} Top Clients ⭐
               </p>
             </div>
             <div className="p-3 bg-purple-500/20 rounded-xl">
@@ -442,12 +445,7 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
           )}
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 rounded-2xl p-5 border border-yellow-500/20">
-            <p className="text-xs text-zinc-400 font-semibold mb-2">👑 Ultra Champions</p>
-            <p className="text-3xl font-semibold text-white">{rfmSegments.ultraChampions}</p>
-            <p className="text-xs text-yellow-400 mt-1">Perfection 555</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="bg-emerald-500/10 rounded-2xl p-5 border border-emerald-500/20">
             <p className="text-xs text-zinc-400 font-semibold mb-2">🏆 Champions</p>
             <p className="text-3xl font-semibold text-white">{rfmSegments.champions}</p>
@@ -574,42 +572,44 @@ export default function Dashboard({ data, onNavigate, showWebData }: DashboardPr
         </div>
       </div>
 
-      {/* Top Magasins */}
-      <div className="glass rounded-3xl p-8 border border-zinc-800">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-500/20 rounded-2xl">
-              <Store className="w-7 h-7 text-green-400" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-semibold text-white">Performance Magasins</h3>
-              <p className="text-sm text-zinc-500">Top 5 des points de vente</p>
-            </div>
-          </div>
-          {onNavigate && (
-            <button
-              onClick={() => onNavigate('stores')}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-all font-medium"
-            >
-              Analyse complète <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {topMagasins.map((mag: any, idx: number) => (
-            <div key={idx} className="bg-zinc-900/50 rounded-2xl p-5 border border-zinc-800">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl font-bold text-green-400">#{idx + 1}</span>
-                <Target className="w-5 h-5 text-zinc-600" />
+      {/* Top Magasins - UNIQUEMENT EN MODE MAGASIN */}
+      {!showWebData && topMagasins.length > 0 && (
+        <div className="glass rounded-3xl p-8 border border-zinc-800">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-500/20 rounded-2xl">
+                <Store className="w-7 h-7 text-green-400" />
               </div>
-              <p className="font-bold text-white mb-2">{mag.mag}</p>
-              <p className="text-lg font-semibold text-white mb-1">{formatEuro(mag.ca)}</p>
-              <p className="text-xs text-zinc-500">{mag.volume.toLocaleString()} articles</p>
+              <div>
+                <h3 className="text-2xl font-semibold text-white">Performance Magasins</h3>
+                <p className="text-sm text-zinc-500">Top 5 des points de vente</p>
+              </div>
             </div>
-          ))}
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('stores')}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-all font-medium"
+              >
+                Analyse complète <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {topMagasins.map((mag: any, idx: number) => (
+              <div key={idx} className="bg-zinc-900/50 rounded-2xl p-5 border border-zinc-800">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xl font-bold text-green-400">#{idx + 1}</span>
+                  <Target className="w-5 h-5 text-zinc-600" />
+                </div>
+                <p className="font-bold text-white mb-2">{mag.mag}</p>
+                <p className="text-lg font-semibold text-white mb-1">{formatEuro(mag.ca)}</p>
+                <p className="text-xs text-zinc-500">{mag.volume.toLocaleString()} articles</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Évolution du CA */}
       <div className="glass rounded-3xl p-8 border border-zinc-800">
