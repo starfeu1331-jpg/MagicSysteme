@@ -276,7 +276,7 @@ function App() {
               {activeTab === 'rfm' && <RFMAnalysis data={data} showWebData={showWebData} />}
               {activeTab === 'subFamilies' && <SubFamilyAnalysis data={data} showWebData={showWebData} />}
               {activeTab === 'crossSelling' && <CrossSellingAnalysis data={data} />}
-              {activeTab === 'cohortes' && <CohortAnalysis data={data} showWebData={showWebData} />}
+              {activeTab === 'cohortes' && <CohortAnalysis data={data} />}
               {activeTab === 'abc' && <ABCAnalysis data={data} />}
               {activeTab === 'kingquentin' && <KingQuentin data={data} />}
               {activeTab === 'stores' && <StorePerformance data={data} />}

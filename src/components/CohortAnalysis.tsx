@@ -4,7 +4,7 @@ interface CohortAnalysisProps {
   data: any
 }
 
-export default function CohortAnalysis({ data, showWebData }: CohortAnalysisProps) {
+export default function CohortAnalysis({ data }: CohortAnalysisProps) {
   if (!data || !data.cohortes) {
     return <div className="flex items-center justify-center min-h-[400px]"><div className="text-zinc-400">Chargement...</div></div>
   }
